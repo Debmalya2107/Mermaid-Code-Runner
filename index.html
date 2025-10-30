@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debdex - Mermaid 3D Studio </title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #14b8a6;
+            --dark: #1e293b;
+            --darker: #0f172a;
+            --light: #f1f5f9;
+            --text: #e2e8f0;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+            min-height: 100vh;
+            color: var(--text);
+            overflow-x: hidden;
+            perspective: 1000px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating Particles Background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            from {
+                transform: translateY(100vh) translateX(0) rotateZ(0deg);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            to {
+                transform: translateY(-100vh) translateX(100px) rotateZ(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* 3D Header */
+        header {
+            position: relative;
+            z-index: 100;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 2rem;
+            transform-style: preserve-3d;
+            animation: headerFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes headerFloat {
+            0%, 100% { transform: translateY(0) rotateX(0deg); }
+            50% { transform: translateY(-5px) rotateX(2deg); }
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transform: translateZ(50px);
+        }
+
+        .logo i {
+            font-size: 2rem;
+            animation: logoSpin 10s linear infinite;
+        }
+
+        @keyframes logoSpin {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+
+        /* 3D Buttons */
+        .btn-3d {
+            position: relative;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-3d:hover {
+            transform: translateY(-3px) rotateX(-10deg);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-3d:active {
+            transform: translateY(0) rotateX(0deg);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-3d::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn-3d:hover::before {
+            opacity: 1;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 3D Card Layout */
+        .editor-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            transform-style: preserve-3d;
+            animation: layoutFloat 8s ease-in-out infinite;
+        }
+
+        @keyframes layoutFloat {
+            0%, 100% { transform: rotateY(0deg); }
+            50% { transform: rotateY(1deg); }
+        }
+
+        .panel {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transform-style: preserve-3d;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+
+        .panel:hover::before {
+            animation: shimmer 0.5s ease;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+        }
+
+        .panel:hover {
+            transform: translateZ(20px) rotateX(2deg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-title i {
+            color: var(--accent);
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Code Editor */
+        .code-editor {
+            position: relative;
+            background: var(--darker);
+            border-radius: 12px;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+
+        .editor-toolbar {
+            background: var(--dark);
+            padding: 0.75rem;
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .editor-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: dotBounce 2s ease-in-out infinite;
+        }
+
+        .editor-dot:nth-child(1) {
+            background: #ff5f56;
+            animation-delay: 0s;
+        }
+
+        .editor-dot:nth-child(2) {
+            background: #ffbd2e;
+            animation-delay: 0.2s;
+        }
+
+        .editor-dot:nth-child(3) {
+            background: #27c93f;
+            animation-delay: 0.4s;
+        }
+
+        @keyframes dotBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        #codeInput {
+            width: 100%;
+            min-height: 400px;
+            padding: 1rem;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+        }
+
+        /* Preview Panel */
+        .preview-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+
+        .preview-container::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent));
+            border-radius: 12px;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+            animation: borderRotate 3s linear infinite;
+        }
+
+        @keyframes borderRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .preview-container:hover::after {
+            opacity: 0.5;
+        }
+
+        /* Control Panel */
+        .controls {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            transform-style: preserve-3d;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .theme-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1) rotateZ(180deg);
+            border-color: var(--accent);
+        }
+
+        .theme-btn.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px currentColor;
+        }
+
+        .theme-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: inherit;
+            filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .theme-btn:hover::after {
+            opacity: 0.5;
+        }
+
+        /* Examples Dropdown */
+        .examples-dropdown {
+            position: relative;
+        }
+
+        .dropdown-toggle {
+            padding: 0.75rem 1.5rem;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-toggle:hover {
+            background: var(--glass-border);
+            transform: translateY(-2px);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 0.5rem;
+            background: var(--dark);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 0.5rem;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dropdown-item:hover {
+            background: var(--glass);
+            transform: translateX(5px);
+        }
+
+        /* Floating Action Buttons */
+        .fab-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fab::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .fab:hover::before {
+            opacity: 1;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotateZ(10deg);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .fab:active {
+            transform: scale(0.95);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--dark);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .toast i {
+            font-size: 1.25rem;
+            color: var(--accent);
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--glass-border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .editor-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .control-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        /* 3D Text Effects */
+        .text-3d {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+            animation: textGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes textGlow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- 3D Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-cube"></i>
+                <span class="text-3d">Debdex - Mermaid 3D Studio</span>
+            </div>
+            <div class="header-actions">
+                <button class="btn-3d" onclick="exportDiagram()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+                <button class="btn-3d" onclick="shareDiagram()">
+                    <i class="fas fa-share-alt"></i> Share
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Editor Layout -->
+        <div class="editor-layout">
+            <!-- Code Editor Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-code"></i>
+                        Mermaid Code
+                    </div>
+                    <button class="btn-3d" onclick="formatCode()">
+                        <i class="fas fa-magic"></i> Format
+                    </button>
+                </div>
+                <div class="code-editor">
+                    <div class="editor-toolbar">
+                        <div class="editor-dot"></div>
+                        <div class="editor-dot"></div>
+                        <div class="editor-dot"></div>
+                    </div>
+                    <textarea id="codeInput" placeholder="Enter your Mermaid diagram code here...
+
+Example:
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Process 1]
+    B -->|No| D[Process 2]
+    C --> E[End]
+    D --> E"></textarea>
+                </div>
+            </div>
+
+            <!-- Preview Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-eye"></i>
+                        Live Preview
+                    </div>
+                    <button class="btn-3d" onclick="refreshPreview()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <div class="preview-container">
+                    <div id="mermaidPreview"></div>
+                    <div class="loading" id="loading">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="controls">
+            <div class="control-group">
+                <div class="examples-dropdown">
+                    <button class="dropdown-toggle" onclick="toggleDropdown()">
+                        <i class="fas fa-book"></i>
+                        Examples
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <div class="dropdown-item" onclick="loadExample('flowchart')">
+                            <i class="fas fa-project-diagram"></i> Flowchart
+                        </div>
+                        <div class="dropdown-item" onclick="loadExample('sequence')">
+                            <i class="fas fa-exchange-alt"></i> Sequence Diagram
+                        </div>
+                        <div class="dropdown-item" onclick="loadExample('gantt')">
+                            <i class="fas fa-calendar-alt"></i> Gantt Chart
+                        </div>
+                        <div class="dropdown-item" onclick="loadExample('class')">
+                            <i class="fas fa-sitemap"></i> Class Diagram
+                        </div>
+                        <div class="dropdown-item" onclick="loadExample('state')">
+                            <i class="fas fa-random"></i> State Diagram
+                        </div>
+                        <div class="dropdown-item" onclick="loadExample('pie')">
+                            <i class="fas fa-chart-pie"></i> Pie Chart
+                        </div>
+                    </div>
+                </div>
+
+                <div class="theme-selector">
+                    <div class="theme-btn active" style="background: linear-gradient(135deg, #667eea, #764ba2)" onclick="setTheme('default')"></div>
+                    <div class="theme-btn" style="background: linear-gradient(135deg, #f093fb, #f5576c)" onclick="setTheme('dark')"></div>
+                    <div class="theme-btn" style="background: linear-gradient(135deg, #4facfe, #00f2fe)" onclick="setTheme('forest')"></div>
+                    <div class="theme-btn" style="background: linear-gradient(135deg, #43e97b, #38f9d7)" onclick="setTheme('neutral')"></div>
+                </div>
+
+                <button class="btn-3d" onclick="clearEditor()">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+
+                <button class="btn-3d" onclick="copyCode()">
+                    <i class="fas fa-copy"></i> Copy Code
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Buttons -->
+    <div class="fab-container">
+        <button class="fab" onclick="toggleFullscreen()" title="Fullscreen">
+            <i class="fas fa-expand"></i>
+        </button>
+        <button class="fab" onclick="printDiagram()" title="Print">
+            <i class="fas fa-print"></i>
+        </button>
+        <button class="fab" onclick="randomizeBackground()" title="Random Background">
+            <i class="fas fa-palette"></i>
+        </button>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: false,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#6366f1',
+                primaryTextColor: '#1e293b',
+                primaryBorderColor: '#4f46e5',
+                lineColor: '#64748b',
+                secondaryColor: '#ec4899',
+                tertiaryColor: '#14b8a6'
+            }
+        });
+
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Load examples
+        const examples = {
+            flowchart: `graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B
+    C --> E[End]`,
+            
+            sequence: `sequenceDiagram
+    participant Alice
+    participant Bob
+    Alice->>John: Hello John, how are you?
+    loop Healthcheck
+        John->>John: Fight against hypochondria
+    end
+    Note right of John: Rational thoughts <br/>prevail!
+    John-->>Alice: Great!
+    John->>Bob: How about you?
+    Bob-->>John: Jolly good!`,
+            
+            gantt: `gantt
+    title A Gantt Diagram
+    dateFormat  YYYY-MM-DD
+    section Section
+    A task           :a1, 2014-01-01, 30d
+    Another task     :after a1  , 20d
+    section Another
+    Task in sec      :2014-01-12  , 12d
+    another task      : 24d`,
+            
+            class: `classDiagram
+    class Animal
+    Animal : +int age
+    Animal : +String gender
+    Animal: +isMammal()
+    Animal: +mate()
+    class Duck
+       Duck : +String beakColor
+       Duck : +swim()
+    class Fish
+       Fish : -int sizeInFeet
+       Fish : -canEat()
+    class Zebra
+       Zebra : +bool is_wild
+       Zebra : +run()
+    Animal <|-- Duck
+    Animal <|-- Fish
+    Animal <|-- Zebra`,
+            
+            state: `stateDiagram-v2
+    [*] --> Still
+    Still --> [*]
+    Still --> Moving
+    Moving --> Still
+    Moving --> Crash
+    Crash --> [*]`,
+            
+            pie: `pie title Pets adopted by volunteers
+    "Dogs" : 386
+    "Cats" : 85
+    "Rats" : 15
+    "Others" : 20`
+        };
+
+        // Load example
+        function loadExample(type) {
+            const codeInput = document.getElementById('codeInput');
+            codeInput.value = examples[type];
+            updatePreview();
+            toggleDropdown();
+            showToast(`Loaded ${type} diagram example`);
+        }
+
+        // Update preview
+        async function updatePreview() {
+            const code = document.getElementById('codeInput').value;
+            const preview = document.getElementById('mermaidPreview');
+            const loading = document.getElementById('loading');
+            
+            if (!code.trim()) {
+                preview.innerHTML = '<p style="color: #94a3b8;">Enter Mermaid code to see preview</p>';
+                return;
+            }
+            
+            loading.classList.add('show');
+            preview.innerHTML = '';
+            
+            try {
+                const { svg } = await mermaid.render('mermaid-diagram', code);
+                preview.innerHTML = svg;
+                
+                // Add 3D effect to SVG
+                const svgElement = preview.querySelector('svg');
+                if (svgElement) {
+                    svgElement.style.transform = 'perspective(1000px) rotateX(2deg)';
+                    svgElement.style.transition = 'transform 0.3s ease';
+                    svgElement.addEventListener('mouseenter', () => {
+                        svgElement.style.transform = 'perspective(1000px) rotateX(0deg) scale(1.02)';
+                    });
+                    svgElement.addEventListener('mouseleave', () => {
+                        svgElement.style.transform = 'perspective(1000px) rotateX(2deg)';
+                    });
+                }
+            } catch (error) {
+                preview.innerHTML = `<p style="color: #ef4444;">Error: ${error.message}</p>`;
+            } finally {
+                loading.classList.remove('show');
+            }
+        }
+
+        // Refresh preview
+        function refreshPreview() {
+            updatePreview();
+            showToast('Preview refreshed');
+        }
+
+        // Format code
+        function formatCode() {
+            const codeInput = document.getElementById('codeInput');
+            // Simple formatting - just ensure proper indentation
+            let code = codeInput.value;
+            code = code.replace(/(\r\n|\n|\r)/gm, '\n');
+            codeInput.value = code;
+            showToast('Code formatted');
+        }
+
+        // Clear editor
+        function clearEditor() {
+            if (confirm('Are you sure you want to clear the editor?')) {
+                document.getElementById('codeInput').value = '';
+                document.getElementById('mermaidPreview').innerHTML = '<p style="color: #94a3b8;">Enter Mermaid code to see preview</p>';
+                showToast('Editor cleared');
+            }
+        }
+
+        // Copy code
+        function copyCode() {
+            const codeInput = document.getElementById('codeInput');
+            codeInput.select();
+            document.execCommand('copy');
+            showToast('Code copied to clipboard');
+        }
+
+        // Export diagram
+        function exportDiagram() {
+            const svg = document.querySelector('#mermaidPreview svg');
+            if (svg) {
+                const svgData = new XMLSerializer().serializeToString(svg);
+                const blob = new Blob([svgData], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'mermaid-diagram.svg';
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('Diagram exported as SVG');
+            } else {
+                showToast('No diagram to export', 'error');
+            }
+        }
+
+        // Share diagram
+        function shareDiagram() {
+            const code = document.getElementById('codeInput').value;
+            if (code) {
+                const encoded = btoa(code);
+                const url = `${window.location.origin}${window.location.pathname}#code=${encoded}`;
+                navigator.clipboard.writeText(url);
+                showToast('Share link copied to clipboard');
+            } else {
+                showToast('No diagram to share', 'error');
+            }
+        }
+
+        // Set theme
+        function setTheme(theme) {
+            const themes = {
+                default: 'default',
+                dark: 'dark',
+                forest: 'forest',
+                neutral: 'neutral'
+            };
+            
+            mermaid.initialize({ theme: themes[theme] });
+            updatePreview();
+            
+            // Update active theme button
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            showToast(`Theme changed to ${theme}`);
+        }
+
+        // Toggle dropdown
+        function toggleDropdown() {
+            const dropdown = document.getElementById('dropdownMenu');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.examples-dropdown')) {
+                document.getElementById('dropdownMenu').classList.remove('show');
+            }
+        });
+
+        // Toggle fullscreen
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Print diagram
+        function printDiagram() {
+            window.print();
+            showToast('Print dialog opened');
+        }
+
+        // Randomize background
+        function randomizeBackground() {
+            const gradients = [
+                'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%)',
+                'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                'linear-gradient(135deg, #30cfd0 0%, #330867 100%)'
+            ];
+            
+            const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+            document.body.style.background = randomGradient;
+            document.body.style.backgroundSize = '400% 400%';
+            showToast('Background randomized');
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const icon = toast.querySelector('i');
+            
+            toastMessage.textContent = message;
+            
+            if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle';
+                icon.style.color = '#ef4444';
+            } else {
+                icon.className = 'fas fa-check-circle';
+                icon.style.color = '#14b8a6';
+            }
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Load code from URL if present
+        function loadFromURL() {
+            const hash = window.location.hash;
+            if (hash.startsWith('#code=')) {
+                try {
+                    const encoded = hash.substring(6);
+                    const code = atob(encoded);
+                    document.getElementById('codeInput').value = code;
+                    updatePreview();
+                } catch (e) {
+                    console.error('Failed to load code from URL');
+                }
+            }
+        }
+
+        // Event listeners
+        document.getElementById('codeInput').addEventListener('input', debounce(updatePreview, 500));
+
+        // Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            loadFromURL();
+            
+            // Load default example
+            loadExample('flowchart');
+            
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 's':
+                            e.preventDefault();
+                            exportDiagram();
+                            break;
+                        case 'Enter':
+                            e.preventDefault();
+                            updatePreview();
+                            break;
+                        case 'l':
+                            e.preventDefault();
+                            clearEditor();
+                            break;
+                    }
+                }
+            });
+        });
+
+        // Add 3D mouse tracking effect
+        document.addEventListener('mousemove', (e) => {
+            const panels = document.querySelectorAll('.panel');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            panels.forEach(panel => {
+                const rect = panel.getBoundingClientRect();
+                const panelX = rect.left + rect.width / 2;
+                const panelY = rect.top + rect.height / 2;
+                const angleX = (e.clientY - panelY) * 0.01;
+                const angleY = (e.clientX - panelX) * -0.01;
+                
+                panel.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) translateZ(10px)`;
+            });
+        });
+    </script>
+</body>
+</html>
